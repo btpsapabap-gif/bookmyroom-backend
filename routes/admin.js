@@ -4,142 +4,146 @@ const router = express.Router();
 const supabase = require("../supabase");
 
 router.get("/dashboard", async (req, res) => {
-  try {
+    try {
 
-    const { data: rooms, error: roomsError } =
-      await supabase
-        .from("rooms")
-        .select("*");
+        const { data: rooms, error: roomsError } =
+            await supabase
+                .from("rooms")
+                .select("*");
 
-    if (roomsError) throw roomsError;
+        if (roomsError) throw roomsError;
 
-    const { data: bookings, error: bookingsError } =
-      await supabase
-        .from("bookings")
-        .select("*")
-        .order("id", { ascending: false });
+        const { data: bookings, error: bookingsError } =
+            await supabase
+                .from("bookings")
+                .select("*")
+                .order("id", { ascending: false });
 
-    if (bookingsError) throw bookingsError;
+        if (bookingsError) throw bookingsError;
 
-    const totalRooms = rooms.length;
+        const totalRooms = rooms.length;
 
-    const confirmedBookings =
-      bookings.filter(
-        b => b.status === "CONFIRMED"
-      );
+        const confirmedBookings =
+            bookings.filter(
+                b => b.status === "CONFIRMED"
+            );
 
-    const bookedRoomIds =
-      new Set(
-        confirmedBookings.map(
-          b => b.room_id
-        )
-      );
+        const bookedRoomIds =
+            new Set(
+                confirmedBookings.map(
+                    b => b.room_id
+                )
+            );
 
-    const bookedRooms =
-      bookedRoomIds.size;
+        const bookedRooms =
+            bookedRoomIds.size;
 
-    const availableRooms =
-      Math.max(
-        totalRooms - bookedRooms,
-        0
-      );
+        const availableRooms =
+            Math.max(
+                totalRooms - bookedRooms,
+                0
+            );
 
-    const revenue =
-      bookings.reduce(
-        (sum, booking) =>
-          sum +
-          Number(
-            booking.total_amount || 0
-          ),
-        0
-      );
+        const revenue =
+            bookings.reduce(
+                (sum, booking) =>
+                    sum +
+                    Number(
+                        booking.total_amount || 0
+                    ),
+                0
+            );
 
-    res.json({
-      success: true,
-      totalRooms,
-      bookedRooms,
-      availableRooms,
-      revenue,
-      totalBookings:
-        bookings.length,
-      bookings
-    });
+        res.json({
+            success: true,
+            totalRooms,
+            bookedRooms,
+            availableRooms,
+            revenue,
+            totalBookings:
+                bookings.length,
+            bookings
+        });
 
-  } catch (err) {
+    } catch (err) {
 
-    console.error(err);
+        console.error(err);
 
-    res.status(500).json({
-      success: false,
-      message: err.message
-    });
+        res.status(500).json({
+            success: false,
+            message: err.message
+        });
 
-  }
+    }
 });
 
 router.get("/search", async (req, res) => {
 
-  try {
+    try {
 
-    const search =
-      req.query.q || "";
+        const search =
+            req.query.q || "";
 
-    const { data, error } =
-      await supabase
-        .from("bookings")
-        .select("*");
+        const { data, error } =
+            await supabase
+                .from("bookings")
+                .select("*");
 
-    if (error) throw error;
+        if (error) throw error;
 
-    const results =
-      data.filter(b => {
+        const results =
+            data.filter(b => {
 
-        return (
-          String(b.employee_id || "")
-            .toLowerCase()
-            .includes(search.toLowerCase())
+                return (
+                    String(b.employee_id || "")
+                        .toLowerCase()
+                        .includes(search.toLowerCase())
 
-          ||
+                    ||
 
-          String(b.room_no || "")
-            .toLowerCase()
-            .includes(search.toLowerCase())
+                    String(b.room_no || "")
+                        .toLowerCase()
+                        .includes(search.toLowerCase())
 
-          ||
+                    ||
 
-          String(b.mobile || "")
-            .includes(search)
+                    String(b.mobile || "")
+                        .includes(search)
 
-          ||
+                    ||
 
-          String(b.status || "")
-            .toLowerCase()
-            .includes(search.toLowerCase())
+                    String(b.status || "")
+                        .toLowerCase()
+                        .includes(search.toLowerCase())
 
-          ||
+                    ||
 
-          String(b.from_date || "")
-            .includes(search)
+                    String(b.from_date || "")
+                        .includes(search)
 
-          ||
+                    ||
 
-          String(b.to_date || "")
-            .includes(search)
+                    String(b.to_date || "")
+                        .includes(search)
 
-        );
+                );
 
-      });
+            });
 
-    res.json(results);
+        res.json(results);
 
-  } catch (err) {
+    } catch (err) {
 
-    res.status(500).json({
-      success: false,
-      message: err.message
-    });
+        res.status(500).json({
+            success: false,
+            message: err.message
+        });
 
-  }
+    }
+
+    function goBack() {
+        window.location.href = "index.html";
+    }
 
 });
 
