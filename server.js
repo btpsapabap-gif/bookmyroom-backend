@@ -61,6 +61,14 @@ app.use(
     adminRoute
 );
 
+const guestRoutes =
+  require("./routes/guests");
+
+app.use(
+    "/api/guests",
+     guestRoutes
+);
+
 app.get(
     "/api/health",
     (req, res) => {
@@ -71,10 +79,10 @@ app.get(
 );
 
 const PORT =
-  process.env.PORT || 3000;
+    process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(
-    `Server running on port ${PORT}`
-  );
+    console.log(
+        `Server running on port ${PORT}`
+    );
 });
