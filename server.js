@@ -60,15 +60,15 @@ app.use(
     "/api/admin",
     adminRoute
 );
-
+console.log("Before Guests Route");
 const guestRoutes =
   require("./routes/guests");
-
+console.log("After Guests Route");
 app.use(
     "/api/guests",
      guestRoutes
 );
-
+console.log("Guests Route Registered");
 app.get(
     "/api/health",
     (req, res) => {
