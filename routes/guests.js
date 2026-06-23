@@ -4,12 +4,6 @@ const supabase = require("../supabase");
 
 /* Register Guest */
 
-const express = require("express");
-const router = express.Router();
-const supabase = require("../supabase");
-
-/* Register Guest */
-
 router.post("/register", async (req, res) => {
 
   try {
