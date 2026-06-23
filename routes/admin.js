@@ -141,10 +141,6 @@ router.get("/search", async (req, res) => {
 
     }
 
-    function goBack() {
-        window.location.href = "index.html";
-    }
-
 });
 
 module.exports = router;

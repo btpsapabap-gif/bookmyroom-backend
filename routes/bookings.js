@@ -1,134 +1,253 @@
 const express = require("express");
-
 const router = express.Router();
 
-const supabase =
-  require("../supabase");
+const supabase = require("../supabase");
 
-// GET BOOKINGS
+/* ==========================
+GET BOOKINGS
+========================== */
 
 router.get("/", async (req, res) => {
 
-  const { data, error } =
-    await supabase
-      .from("bookings")
-      .select("*")
-      .order(
-        "booking_date",
-        { ascending: false }
-      );
+try {
 
-  if (error) {
-    return res
-      .status(500)
-      .json(error);
-  }
+const { data, error } =
+  await supabase
+    .from("bookings")
+    .select("*")
+    .order(
+      "booking_date",
+      { ascending: false }
+    );
 
-  res.json(data);
+if (error) {
+
+  return res.status(500).json({
+    success: false,
+    message: error.message
+  });
+
+}
+
+res.json(data);
+
+} catch (err) {
+
+res.status(500).json({
+  success: false,
+  message: err.message
+});
+
+}
 
 });
 
-// CREATE BOOKING
+/* ==========================
+CREATE BOOKING
+========================== */
 
 router.post("/", async (req, res) => {
 
-  try {
+try {
 
-    const booking = req.body;
+const booking = req.body;
 
-    // Check existing bookings
-    const { data: existingBookings, error: checkError } =
-      await supabase
-        .from("bookings")
-        .select("*")
-        .eq("room_id", booking.room_id)
-        .eq("status", "CONFIRMED");
+const today =
+  new Date();
 
-    if (checkError) {
-      return res.status(500).json(checkError);
-    }
+today.setHours(
+  0, 0, 0, 0
+);
 
-    const newFrom =
-      new Date(booking.from_date);
+const newFrom =
+  new Date(
+    booking.from_date
+  );
 
-    const newTo =
-      new Date(booking.to_date);
+const newTo =
+  new Date(
+    booking.to_date
+  );
 
-    const conflict =
-      existingBookings.some(existing => {
+/* --------------------------
+   DATE VALIDATION
+-------------------------- */
 
-        const existingFrom =
-          new Date(existing.from_date);
+if (newFrom < today) {
 
-        const existingTo =
-          new Date(existing.to_date);
+  return res.status(400).json({
+    success: false,
+    message:
+      "Past dates are not allowed"
+  });
 
-        return (
-          newFrom <= existingTo &&
-          newTo >= existingFrom
+}
+
+if (newTo <= newFrom) {
+
+  return res.status(400).json({
+    success: false,
+    message:
+      "To Date must be after From Date"
+  });
+
+}
+
+/* --------------------------
+   DEFAULT VALUES
+-------------------------- */
+
+booking.booking_date =
+  new Date().toISOString();
+
+booking.status =
+  booking.status ||
+  "CONFIRMED";
+
+booking.user_type =
+  booking.user_type ||
+  "INTERNAL";
+
+/* --------------------------
+   ROOM CONFLICT CHECK
+-------------------------- */
+
+const {
+  data: existingBookings,
+  error: checkError
+} = await supabase
+  .from("bookings")
+  .select("*")
+  .eq(
+    "room_id",
+    booking.room_id
+  )
+  .eq(
+    "status",
+    "CONFIRMED"
+  );
+
+if (checkError) {
+
+  return res.status(500).json({
+    success: false,
+    message:
+      checkError.message
+  });
+
+}
+
+const conflict =
+  existingBookings.some(
+    existing => {
+
+      const existingFrom =
+        new Date(
+          existing.from_date
         );
 
-      });
+      const existingTo =
+        new Date(
+          existing.to_date
+        );
 
-    if (conflict) {
-
-      return res.status(400).json({
-        success: false,
-        message:
-          "Room already booked for selected dates"
-      });
+      return (
+        newFrom < existingTo &&
+        newTo > existingFrom
+      );
 
     }
+  );
 
-    const { data, error } =
-      await supabase
-        .from("bookings")
-        .insert([booking])
-        .select();
+if (conflict) {
 
-    if (error) {
-      return res.status(500).json(error);
-    }
+  return res.status(400).json({
+    success: false,
+    message:
+      "Room already booked for selected dates"
+  });
 
-    res.json({
-      success: true,
-      booking: data[0]
-    });
+}
 
-  } catch (err) {
+/* --------------------------
+   CREATE BOOKING
+-------------------------- */
 
-    res.status(500).json({
-      success: false,
-      message: err.message
-    });
+const {
+  data,
+  error
+} = await supabase
+  .from("bookings")
+  .insert([booking])
+  .select();
 
-  }
+if (error) {
+
+  return res.status(500).json({
+    success: false,
+    message:
+      error.message
+  });
+
+}
+
+res.json({
+  success: true,
+  booking: data[0]
+});
+
+} catch (err) {
+
+res.status(500).json({
+  success: false,
+  message:
+    err.message
+});
+
+}
 
 });
 
-// DELETE BOOKING
+/* ==========================
+DELETE BOOKING
+========================== */
 
-router.delete("/:id",
-  async (req, res) => {
+router.delete("/:id", async (req, res) => {
 
-    const { error } =
-      await supabase
-        .from("bookings")
-        .delete()
-        .eq(
-          "id",
-          req.params.id
-        );
+try {
 
-    if (error) {
-      return res
-        .status(500)
-        .json(error);
-    }
+const { error } =
+  await supabase
+    .from("bookings")
+    .delete()
+    .eq(
+      "id",
+      req.params.id
+    );
 
-    res.json({
-      success: true
-    });
+if (error) {
+
+  return res.status(500).json({
+    success: false,
+    message:
+      error.message
+  });
+
+}
+
+res.json({
+  success: true
+});
+
+} catch (err) {
+
+res.status(500).json({
+  success: false,
+  message:
+    err.message
+});
+
+}
 
 });
 
