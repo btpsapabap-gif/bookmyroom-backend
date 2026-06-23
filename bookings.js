@@ -11,7 +11,6 @@ router.get("/", async (req, res) => {
 
 try {
 
-```
 const { data, error } =
   await supabase
     .from("bookings")
@@ -31,16 +30,13 @@ if (error) {
 }
 
 res.json(data);
-```
 
 } catch (err) {
 
-```
 res.status(500).json({
   success: false,
   message: err.message
 });
-```
 
 }
 
@@ -54,7 +50,6 @@ router.post("/", async (req, res) => {
 
 try {
 
-```
 const booking = req.body;
 
 const today =
@@ -200,17 +195,14 @@ res.json({
   success: true,
   booking: data[0]
 });
-```
 
 } catch (err) {
 
-```
 res.status(500).json({
   success: false,
   message:
     err.message
 });
-```
 
 }
 
@@ -224,7 +216,6 @@ router.delete("/:id", async (req, res) => {
 
 try {
 
-```
 const { error } =
   await supabase
     .from("bookings")
@@ -247,17 +238,14 @@ if (error) {
 res.json({
   success: true
 });
-```
 
 } catch (err) {
 
-```
 res.status(500).json({
   success: false,
   message:
     err.message
 });
-```
 
 }
 
