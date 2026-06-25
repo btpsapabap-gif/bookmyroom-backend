@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const supabase = require("../supabase");
-
+const bcrypt = require("bcrypt");
 /* Register Guest */
 
 router.post("/register", async (req, res) => {
@@ -40,7 +40,7 @@ router.post("/register", async (req, res) => {
           guest_name,
           mobile,
           email,
-          password
+          password: hashPassword
         }])
         .select();
 
