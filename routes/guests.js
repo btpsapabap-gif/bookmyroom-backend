@@ -33,6 +33,8 @@ router.post("/register", async (req, res) => {
 
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const { data, error } =
       await supabase
         .from("guests")
@@ -40,7 +42,7 @@ router.post("/register", async (req, res) => {
           guest_name,
           mobile,
           email,
-          password: hashPassword
+          password: hashedPassword
         }])
         .select();
 
@@ -96,7 +98,9 @@ router.post("/login", async (req, res) => {
 
     }
 
-    if (guest.password !== password) {
+    const isMatch = await bcrypt.compare(password, guest.password);
+
+    if (!isMatch) {
 
       return res.status(401).json({
         success: false,
